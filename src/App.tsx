@@ -247,12 +247,14 @@ export default function App() {
     const missing = [...new Set(orgIds)].filter(id => {
       if (DEMO_ORG_LABELS[id]) return false;
       const cached = orgDetailsCache[id];
-      return !cached?.organizationName;
+      // Skip if we already tried or if we have a name
+      return !cached?.organizationName && !cached?._tried;
     });
 
     if (!missing.length) return;
 
-    const batchSize = 40;
+    // Increased batch size to reduce the number of requests (and logs!)
+    const batchSize = 200;
     for (let i = 0; i < missing.length; i += batchSize) {
       const chunk = missing.slice(i, i + batchSize);
       try {
@@ -260,8 +262,13 @@ export default function App() {
         const body = res.body || {};
         setOrgDetailsCache(prev => {
           const next = { ...prev };
+          // Mark all as tried so we don't spam requests for failed ones
+          chunk.forEach(id => {
+            if (!next[id]) next[id] = { organizationId: id };
+            next[id]._tried = true; 
+          });
           Object.entries(body).forEach(([id, details]: [string, any]) => {
-            next[id] = { organizationId: id, ...details };
+            next[id] = { ...next[id], ...details };
           });
           return next;
         });
