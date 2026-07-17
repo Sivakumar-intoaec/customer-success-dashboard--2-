@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   app.use(cors());
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '10mb' })); 
 
   const AEC_API_URL = process.env.AEC_API_URL || 'https://aecautopilot.aecplayhouse.com';
   const AEC_API_KEY = process.env.AEC_API_KEY || '';
